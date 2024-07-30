@@ -1,0 +1,11 @@
+{
+  "name": "Sketch (Chat-Extension)",
+  "description": "Draw and send sketches in chat using various colors.",
+  "extension": "True",
+  "extensionText": "Send sketch",
+  "extensionInit": "chat_openSketch()",
+  "icon": "miniApps/sketch/assets/sketch.svg",
+  "init": "miniapp_openSketch()",
+  "id": "sketch",
+  "pluginClass": "nz.scuttlebutt.tremolavossbol.miniapps.SketchPlugin"
+}
