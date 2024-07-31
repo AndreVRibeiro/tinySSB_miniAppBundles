@@ -19,12 +19,12 @@ import android.util.Log
 import android.view.Window
 import android.webkit.WebStorage
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import com.google.zxing.integration.android.IntentIntegrator
 import nz.scuttlebutt.tremolavossbol.crypto.IdStore
 import nz.scuttlebutt.tremolavossbol.tssb.ble.BlePeers
 import nz.scuttlebutt.tremolavossbol.tssb.*
 import nz.scuttlebutt.tremolavossbol.tssb.ble.BluetoothEventListener
-import nz.scuttlebutt.tremolavossbol.utils.Bipf
 import nz.scuttlebutt.tremolavossbol.utils.Constants
 import tremolavossbol.R
 import java.net.*
@@ -53,6 +53,7 @@ class MainActivity : Activity() {
     var broadcastReceiver: BroadcastReceiver? = null
     var isWifiConnected = false
     var ble_event_listener: BluetoothEventListener? = null
+    val plugins = mutableListOf<MiniAppPlugin>()    // Mutable list to hold MiniAppPlugin instances.
 
     /*
     var broadcast_socket: DatagramSocket? = null
@@ -129,7 +130,25 @@ class MainActivity : Activity() {
         webView.settings.javaScriptEnabled = true
         webView.settings.domStorageEnabled = true
 
+        // Create an instance of PluginLoader, passing the current activity and WebView
+        val pluginLoader = PluginLoader(this, webView)
+
+        // Load plugins using PluginLoader and add them to the plugins list
+        plugins.addAll(pluginLoader.loadPlugins())
+
+        // Set a WebViewClient to ensure the HTML scripts and content are injected only
+        // after the tremola.html file is loaded
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+
+                // Initialize each plugin after the HTML page has fully loaded
+                plugins.forEach { it.initialize() }
+            }
+        }
+
         webView.loadUrl("file:///android_asset/web/tremola.html")
+
         // webSettings?.javaScriptCanOpenWindowsAutomatically = true
 
         // prepare for connectivity changes:
