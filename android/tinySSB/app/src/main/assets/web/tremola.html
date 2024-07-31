@@ -3,16 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" type="text/css" href="tremola.css" media="screen" />
+
   <script type="text/javascript" charset="UTF-8" src="scuttlesort.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="eventemitter.js"></script>
   <script type="text/javascript" charset="UTF-8" src="tremola.js"></script>
   <script type="text/javascript" charset="UTF-8" src="tremola_settings.js"></script>
+  <script type="text/javascript" charset="UTF-8" src="mini_apps.js"></script>
   <script type="text/javascript" charset="UTF-8" src="tremola_ui.js"></script>
   <script type="text/javascript" charset="UTF-8" src="qrcode.min.js"></script>
   <script type="text/javascript" charset="UTF-8" src="pinch-zoom.min.js"></script>
-  <script type="text/javascript" charset="UTF-8" src="miniApps/board/board.js"></script>
-  <script type="text/javascript" charset="UTF-8" src="miniApps/board/board_ui.js"></script>
-  <script type="text/javascript" charset="UTF-8" src="extensions/sketch/pako.min.js"></script>
-  <script type="text/javascript" charset="UTF-8" src="extensions/sketch/sketch.js"></script>
 </head>
 <body style="background-image: url('img/splash-as-background.jpg'); background-size: cover; background-color: white; overflow: hidden" onload="backend('ready');">
 <div style="width: 100%; height: 100%; margin: 0px">
@@ -23,9 +22,10 @@
   <button>item3</button> -->
 </div>
 
+  <!--This is the menu where the extensions to the chat are inserted and can be selected-->
   <div id='attach-menu' class='attach-menu-overlay'>
-    <button class="attach-menu-item-button" onclick="chat_openSketch();">Send sketch</button>
-    <!--<button class="attach-menu-item-button" onclick="menu_take_picture();">Take picture</button>
+    <!--<button class="attach-menu-item-button" onclick="chat_openSketch();">Send sketch</button>
+    <button class="attach-menu-item-button" onclick="menu_take_picture();">Take picture</button>
     <button class="attach-menu-item-button" onclick="menu_pick_image();">Attach file</button> -->
   </div>
 
@@ -71,29 +71,9 @@
     </div>
   </div>
 
-  <div id='lst:kanban' class=w100 style="overflow: hidden; display: none;"></div>
+  <!-- Mini App menu for selecting the different apps-->
+  <div id='lst:miniapps' class=w100 style="overflow: hidden; display: none;"></div>
 
-  <div id='kanban-create-personal-board-overlay' class='qr-overlay'>
-    <div style="display:flex; justify-content: center;align-items: center; flex-direction: column; gap: 20px">
-      <div style="text-align: center">
-        <b>Would you like to create your own personal kanban board?</b> <br>
-        (You can also generate new kanban boards using the + icon)
-      </div>
-      <div>
-        <button class="kanban_create_personal_btn" style="background-image: url('img/checked.svg');" onclick="btn_create_personal_board_accept()"></button>
-        <button class="kanban_create_personal_btn" style="background-image: url('img/cancel.svg'); background-position-x: -1.5px;" onclick="btn_create_personal_board_decline()"></button>
-      </div>
-    </div>
-  </div>
-
-  <div id='kanban-invitations-overlay' class='qr-overlay'>
-    <div style="text-align: center;font-size:20px;">
-      Invitations
-    </div>
-    <div id='kanban_invitations_list' style="padding-top: 15px;">
-
-    </div>
-  </div>
 
   <div id="plus">
     <button class=float_button onclick="plus_button();">+</button>
@@ -152,107 +132,6 @@
     <button class=passive onclick="qr_scan_confirmed();" style="margin-top: 5pt; border: 0pt; height: 40pt;"><font size=+1 color=green>&#x2714;</font> create new conctact</button>
     <hr>
     <div id="alias_id" style="font-family: Courier; font-size: small;"></div>
-  </div>
-
-  <div id="div:board" style="display: none; height: calc(100% - 10px); margin-top: 10px;">
-
-    <div id='div:debug' class="qr-overlay">
-      <textarea rows="20" id="txt:debug"></textarea>
-    </div>
-
-    <div id="div:board_ui" style="height: 100%; overflow-x: scroll;overflow-y: hidden;">
-      <div class='columns_container' id='div:columns_container'>
-        <div class='column_wrapper' style='order: 100000;'>
-        </div>
-      </div>
-    </div>
-
-    <div id="div:menu_history" class="qr-overlay">
-      <div class="menu_history_hdr" style="overflow:auto;padding-bottom: 10px;">
-        <b style="float: left;">History</b>
-      </div>
-      <div>
-        <label for='history_sort_select'>Sort by:</label>
-        <select id='history_sort_select' onchange="history_sort_select(this)">
-          <option value='latest_first'>Latest event first</option>
-          <option value='oldest_first'>Oldest event first</option>
-        </select>
-      </div>
-      <div id="menu_history_content" style="overflow-x: hidden;overflow-y: scroll;max-height: 70vh;display: flex;flex-direction: column;margin-top: 10px;"></div>
-    </div>
-
-    <div id="div:invite_menu" class="qr-overlay">
-      <div id="menu_invite_hdr">
-        <b>Invite Users</b>
-      </div>
-
-      <div id="menu_invite_content" style="overflow-x: hidden;overflow-y: scroll;max-height: 70vh;"></div>
-    </div>
-
-    <div id="div:item_menu" class="qr-overlay">
-      <div style="padding-bottom:20px;" onclick="close_board_context_menu()">
-        <div id="item_menu_title" style="text-align: center;"></div>
-      </div>
-
-      <div id="div:item_menu_content" class="item_menu_content" onclick="close_board_context_menu()">
-        <div id="div:item_menu_description">
-          <b style="margin-top:10px;">Description:</b>
-          <textarea class='item_menu_desc' id='div:item_menu_description_text' rows='8'></textarea>
-          <button id='btn:item_menu_description_save' style="display:none;" onclick="item_menu_save_description()">Save</button>
-          <button id='btn:item_menu_description_cancel' style="display:none;" onclick="item_menu_cancel_description()">Cancel</button>
-        </div>
-
-        <div style="padding-top: 10px; padding-bottom: 20px" onclick="close_board_context_menu()">
-          <b style="margin-top:10px;">Assignees:</b>
-          <div id="div:item_menu_assignees" class="div:item_menu_assignees_container"></div>
-        </div>
-
-        <div style="padding-top: 40px">
-          <b>Comments:</b>
-          <div id="div:item_menu_comments" style="overflow:auto;">
-            <textarea id="item_menu_comment_text" placeholder="Add comment..." style="float:left;width:84%;height: 50px;"></textarea>
-            <button class="flat passive buttontext" style="background-image: url('img/send.svg');float:right;width: 15%;" onclick="btn_post_comment()"></button>
-          </div>
-
-          <div id="lst:item_menu_posts" style="max-height: 33vh;overflow-x: hidden;overflow-y:scroll;">
-          </div>
-
-        </div>
-      </div>
-
-      <div class="item_menu_buttons">
-
-        <button class="item_menu_button" onclick="menu_edit('board_rename_item', 'Enter New Name', '')">rename card</button>
-
-        <!-- div class='dropdown_menu'>
-          <button id='btn:item_menu_change_column' class="item_menu_button"  onclick="contextmenu_change_column()">Change Column</button>
-          <div id="change_column_options">
-          </div>
-        </div -->
-
-        <!-- div class='dropdown_menu' id="item_menu_change_position">
-          <button id='btn:item_menu_change_position' class="item_menu_button"  onclick="contextmenu_item_change_position()">Change Position</button>
-          <div id="change_position_options">
-          </div>
-        </div -->
-
-        <div class='dropdown_menu' id="item_menu_assign">
-          <button id='btn:item_menu_assign' class="item_menu_button"  onclick="contextmenu_item_assign()">(un-) assign members</button>
-          <div id="assign_options">
-          </div>
-        </div>
-
-        <div class='dropdown_menu'>
-          <button id='btn:item_menu_change_color' class="item_menu_button"  onclick="contextmenu_change_color()">set name color</button>
-          <div id="change_color_options">
-          </div>
-        </div>
-
-        <button class="item_menu_button" onclick="btn_remove_item()">delete Card</button>
-
-      </div>
-    </div>
-
   </div>
 
   <div id='connection-overlay' class='qr-overlay'>
@@ -533,7 +412,7 @@
 
   <table width=100% cellpadding="2pt"><tr>
     <td width=33%><button id='btn:chats'    class="w100 flat active buttontext" onclick="btnBridge(this);" style="background-image: url('img/chat.svg');">&nbsp;<!-- font size=+3>&#x1F4E8;</font><br><font size=small>Chats</font --></button>
-    <td width=33%><button id='btn:kanban'   class="w100 flat passive buttontext" onclick="btnBridge(this);" style="background-image: url('img/kanban.svg');">&nbsp;<!-- font size=+3>&#x1F5E3;</font><br><font size=small>Board</font --></button>
+    <td width=33%><button id='btn:miniapps'   class="w100 flat passive buttontext" onclick="btnBridge(this);" style="background-image: url('img/miniapps.svg');background-size: 40px 40px;">&nbsp;<!-- font size=+3>&#x1F5E3;</font><br><font size=small>Board</font --></button>
     <td width=33%><button id='btn:contacts' class="w100 flat passive buttontext" onclick="btnBridge(this);" style="background-image: url('img/contacts.svg');">&nbsp;<!-- font size=+3>&#x1F465;</font><br><font size=small>Contacts</font --></button>
   </table>
 
