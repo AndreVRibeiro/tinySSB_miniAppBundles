@@ -377,6 +377,67 @@ function kanban_new_event(e) {
 
 }
 
+// The code in this function used to be in the function edit_confiremd() in tremola.js
+// but due to modularity it was removed and replaced with a general backend call that is caught by
+// the Kanban Plugin handler function
+function kanban_edit_confirmed() {
+    var val = document.getElementById('edit_text').value;
+    if (edit_target == 'new_board') {
+        console.log("action for new_board")
+        if (val == '') {
+            console.log('empty')
+            return
+        }
+        //create new board with name = val
+        createBoard(val)
+    } else if (edit_target == 'board_rename') {
+        var board = tremola.board[curr_board]
+        if (val == '') {
+            menu_edit('board_rename', 'Enter a new name for this board', board.name)
+            launch_snackbar("Enter a name")
+            return
+        }
+        if (val == board.name) {
+            menu_edit('board_rename', 'Enter a new name for this board', board.name)
+            launch_snackbar('This board already have this name')
+            return
+        }
+        renameBoard(curr_board, val)
+    } else if (edit_target == 'board_new_column') {
+        if (val == '') {
+            menu_edit('board_new_column', 'Enter name of new List: ', '')
+            launch_snackbar("Enter a name")
+            return
+        }
+        createColumn(curr_board, val)
+
+    } else if (edit_target == 'board_new_item') {
+        if (val == '') {
+            menu_edit('board_new_item', 'Enter name of new Card: ', '')
+            launch_snackbar("Enter a name")
+            return
+        }
+        createColumnItem(curr_board, curr_column, val)
+    } else if (edit_target == 'board_rename_column') {
+        if (val == '') {
+            menu_rename_column(curr_column)
+            launch_snackbar("Please enter a new Name")
+            return
+        }
+
+        if (val == tremola.board[curr_board].columns[curr_column].name)
+            return
+
+        renameColumn(curr_board, curr_column, val)
+    } else if (edit_target == 'board_rename_item') {
+
+        if (val != tremola.board[curr_board].items[curr_rename_item].name && val != '') {
+            renameItem(curr_board, curr_rename_item, val)
+        }
+        item_menu(curr_rename_item)
+    }
+}
+
 function reload_curr_board() {
     if (curr_board)
         board_reload(curr_board)
