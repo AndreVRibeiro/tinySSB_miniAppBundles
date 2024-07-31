@@ -69,6 +69,109 @@ function dragDrop(ev) {
     }
 }
 
+/**
+ * Sets the Kanban-specific scenario, displaying appropriate elements and managing the layout.
+ * @param {string} s - The scenario identifier for Kanban.
+ */
+function setKanbanScenario(s) {
+    //console.log('HERE', 'INSIDE BUT I DONT WORK')
+    closeOverlay();
+    load_board_list();
+    var lst = scenarioDisplay[s];
+
+    if (curr_scenario == "kanban") {
+        var cl = document.getElementById('btn:' + curr_scenario).classList;
+        cl.toggle('active', false);
+        cl.toggle('passive', true);
+    }
+
+    display_or_not.forEach(function (d) {
+        if (lst.indexOf(d) < 0) {
+            document.getElementById(d).style.display = 'none';
+        } else {
+            document.getElementById(d).style.display = null;
+        }
+    })
+
+    if (s != "board") {
+        document.getElementById('tremolaTitle').style.position = null;
+    }
+
+    if (s == "board") {
+        document.getElementById('tremolaTitle').style.display = 'none';
+        document.getElementById('conversationTitle').style.display = null;
+    } else {
+        document.getElementById('tremolaTitle').style.display = null;
+        document.getElementById('conversationTitle').style.display = 'none';
+    }
+
+    curr_scenario = s;
+    if (curr_scenario == 'kanban') {
+        var cl = document.getElementById('btn:' + curr_scenario).classList;
+        cl.toggle('active', true);
+        cl.toggle('passive', false);
+    }
+
+    if (s == 'board')
+        document.getElementById('core').style.height = 'calc(100% - 60px)';
+    else
+        document.getElementById('core').style.height = 'calc(100% - 118px)';
+
+    if (s == 'kanban') {
+        var personalBoardAlreadyExists = false
+        for (var b in tremola.board) {
+            var board = tremola.board[b]
+            if (board.flags.indexOf(FLAG.PERSONAL) >= 0 && board.members.length == 1 && board.members[0] == myId) {
+                personalBoardAlreadyExists = true
+                break
+            }
+        }
+        if(!personalBoardAlreadyExists && display_create_personal_board) {
+            menu_create_personal_board()
+        }
+    }
+}
+
+/**
+ * Sets the Board-specific scenario, displaying appropriate elements and managing the layout.
+ * @param {string} s - The scenario identifier for Board.
+ */
+function setBoardScenario(s) {
+    closeOverlay();
+    var lst = scenarioDisplay[s];
+    display_or_not.forEach(function (d) {
+        if (lst.indexOf(d) < 0) {
+            document.getElementById(d).style.display = 'none';
+        } else {
+            document.getElementById(d).style.display = null;
+        }
+    })
+    document.getElementById('tremolaTitle').style.display = 'none';
+    document.getElementById('conversationTitle').style.display = null;
+
+    prev_scenario = curr_scenario;
+    curr_scenario = s;
+    document.getElementById('core').style.height = 'calc(100% - 60px)';
+
+}
+
+/**
+ * Event handler to close all overlays using a global event emitter.
+ */
+window.eventEmitter.on('closeOverlay', () => {
+    document.getElementById('import-id-overlay').style.display = 'none';
+    document.getElementById('div:menu_history').style.display = 'none';
+    document.getElementById('div:item_menu').style.display = 'none';
+    document.getElementById("kanban-invitations-overlay").style.display = 'none';
+    document.getElementById('kanban-create-personal-board-overlay').style.display = 'none';
+    curr_item = null;
+    close_board_context_menu();
+    document.getElementById('btn:item_menu_description_save').style.display = 'none';
+    document.getElementById('btn:item_menu_description_cancel').style.display = 'none';
+    document.getElementById('div:debug').style.display = 'none';
+    document.getElementById("div:invite_menu").style.display = 'none';
+});
+
 function load_board_list() {
     document.getElementById('lst:kanban').innerHTML = '';
     if (Object.keys(tremola.board).length === 0)
@@ -159,7 +262,7 @@ function load_board(bid) { //switches scene to board and changes title to board 
     title.innerHTML = box;
 
     document.getElementById("div:columns_container").innerHTML = "" //clear old content
-    setScenario('board')
+    setBoardScenario('board')//setScenario('board')
     document.getElementById("tremolaTitle").style.display = 'none';
     document.getElementById("tremolaTitle").style.position = 'fixed';
     title.style.display = null;
@@ -415,9 +518,13 @@ function menu_new_board() {
     document.getElementById('plus').style.display = 'none';
 }
 
-
+/**
+ * Function called by the backend to initiate the creation of a new board name in a modular way.
+ */
 function menu_new_board_name() {
-    menu_edit('new_board', 'Enter the name of the new board', '')
+    if (prev_scenario == 'kanban') {
+        menu_edit('new_board', 'Enter the name of the new board', '')
+    }
 }
 
 function menu_rename_board() {
@@ -446,7 +553,7 @@ function board_toggle_forget() {
     persist()
     closeOverlay()
     load_board_list()
-    setScenario('kanban')
+    setKanbanScenario('kanban') //setScenario('kanban')
 }
 
 function menu_invite() {
@@ -532,7 +639,7 @@ function leave_curr_board() {
     }
 
     leave(curr_board)
-    setScenario('kanban')
+    setKanbanScenario('kanban') //setScenario('kanban')
 }
 
 /*
