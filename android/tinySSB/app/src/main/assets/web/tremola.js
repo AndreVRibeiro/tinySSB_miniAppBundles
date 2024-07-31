@@ -149,67 +149,18 @@ function edit_confirmed() {
         console.log("action for new_pub_target")
     } else if (edit_target == 'new_invite_target') {
         backend("invite:redeem " + val)
-    } else if (edit_target == 'new_board') {
-        console.log("action for new_board")
-        if (val == '') {
-            console.log('empty')
-            return
-        }
-        //create new board with name = val
-        createBoard(val)
-    } else if (edit_target == 'board_rename') {
-        var board = tremola.board[curr_board]
-        if (val == '') {
-            menu_edit('board_rename', 'Enter a new name for this board', board.name)
-            launch_snackbar("Enter a name")
-            return
-        }
-        if (val == board.name) {
-            menu_edit('board_rename', 'Enter a new name for this board', board.name)
-            launch_snackbar('This board already have this name')
-            return
-        }
-        renameBoard(curr_board, val)
-    } else if (edit_target == 'board_new_column') {
-        if (val == '') {
-            menu_edit('board_new_column', 'Enter name of new List: ', '')
-            launch_snackbar("Enter a name")
-            return
-        }
-        createColumn(curr_board, val)
-
-    } else if (edit_target == 'board_new_item') {
-        if (val == '') {
-            menu_edit('board_new_item', 'Enter name of new Card: ', '')
-            launch_snackbar("Enter a name")
-            return
-        }
-        createColumnItem(curr_board, curr_column, val)
-    } else if (edit_target == 'board_rename_column') {
-        if (val == '') {
-            menu_rename_column(curr_column)
-            launch_snackbar("Please enter a new Name")
-            return
-        }
-
-        if (val == tremola.board[curr_board].columns[curr_column].name)
-            return
-
-        renameColumn(curr_board, curr_column, val)
-    } else if (edit_target == 'board_rename_item') {
-
-        if (val != tremola.board[curr_board].items[curr_rename_item].name && val != '') {
-            renameItem(curr_board, curr_rename_item, val)
-        }
-        item_menu(curr_rename_item)
+    } else {
+        backend("edit_confirmed") // AVR
     }
 }
 
 function members_confirmed() {
     if (prev_scenario == 'chats') {
         new_conversation()
-    } else if (prev_scenario == 'kanban') {
-        menu_new_board_name()
+    //} else if (prev_scenario == 'kanban') {
+    //    menu_new_board_name()
+    } else {
+        backend(prev_scenario + ":members_confirmed") // AVR
     }
 }
 
@@ -356,22 +307,18 @@ function load_post_item(p) { // { 'key', 'from', 'when', 'body', 'to' (if group 
     var txt = ""
     if (p["body"] != null) {
         txt = escapeHTML(p["body"]).replace(/\n/g, "<br>\n");
-        // Sketch app
-        if (txt.startsWith("data:image/png;base64")) { // check if the string is a data url
-            var compressedBase64 = txt.split(',')[1];
-            // We Convert the compressed data from a base64 string to a Uint8Array
-            var compressedData = atob(compressedBase64).split('').map(function (char) {return char.charCodeAt(0);});
-            var uint8Array = new Uint8Array(compressedData);
-            // We to decompress the Uint8Array
-            var decompressedData = pako.inflate(uint8Array);
-            // We Convert the decompressed data back to a base64 string
-            var decompressedBase64 = btoa(String.fromCharCode.apply(null, decompressedData));
-            // We Create a new data URL with the decompressed data
-            var decompressedDataURL = 'data:image/png;base64,' + decompressedBase64;
-            //display the data url as an image element
-            box += "<img src='" + decompressedDataURL + "' alt='Drawing' style='width: 50vw;'>";
-            txt = "";
-        }
+
+        // Event Emitters for
+        var miniAppSpecificContent = window.eventEmitter.emit('load_post_item', txt, box);
+        miniAppSpecificContent.forEach(result => {
+            if (result) {
+                if (result.txtChanged && result.boxChanged) {
+                    txt = result.txt;
+                    box = result.box;
+                }
+            }
+        });
+
         var re = /!\[.*?\]\((.*?)\)/g;
         txt = txt.replace(re, " &nbsp;<object type='image/jpeg' style='width: 95%; display: block; margin-left: auto; margin-right: auto; cursor: zoom-in;' data='http://appassets.androidplatform.net/blobs/$1' ondblclick='modal_img(this)'></object>&nbsp; ");
         // txt = txt + " &nbsp;<object type='image/jpeg' width=95% data='http://appassets.androidplatform.net/blobs/25d444486ffb848ed0d4f1d15d9a165934a02403b66310bf5a56757fec170cd2.jpg'></object>&nbsp; (!)";
@@ -434,6 +381,7 @@ function load_chat(nm) {
     document.getElementById('lst:posts').scrollIntoView(false)
     // console.log("did scroll down, but did it do it?")
     */
+    backend('load_chat_extension');
 }
 
 function load_chat_title(ch) {
@@ -1137,7 +1085,8 @@ function b2f_new_event(e) { // incoming SSB log event: we get map with three ent
                 contact.alias = e.public[1] == "" ? id2b32(e.header.fid) : e.public[1]
                 contact.initial = contact.alias.substring(0, 1).toUpperCase()
                 load_contact_list()
-                load_board_list()
+                //load_board_list()
+                backend("b2f_new_event")
 
                 // update names in connected devices menu
                 for (var l in localPeers) {
@@ -1221,7 +1170,9 @@ function b2f_initialize(id, settings) {
         setSetting(nm, tremola.settings[nm])
     load_chat_list()
     load_contact_list()
-    load_board_list()
+    // Add a backend call for all miniApp Plugins
+    backend("b2f_initialize")
+    //load_board_list()
 
     closeOverlay();
     setScenario('chats');
