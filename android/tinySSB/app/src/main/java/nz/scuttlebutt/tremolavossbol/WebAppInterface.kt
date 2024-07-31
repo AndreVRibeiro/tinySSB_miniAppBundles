@@ -20,10 +20,12 @@ import nz.scuttlebutt.tremolavossbol.utils.Bipf
 import nz.scuttlebutt.tremolavossbol.utils.Bipf.Companion.BIPF_LIST
 import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_IAM
 import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_TEXTANDVOICE
-import nz.scuttlebutt.tremolavossbol.utils.Constants.Companion.TINYSSB_APP_KANBAN
 import nz.scuttlebutt.tremolavossbol.utils.HelperFunctions.Companion.toBase64
 import nz.scuttlebutt.tremolavossbol.utils.HelperFunctions.Companion.toHex
 import org.json.JSONArray
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 
 // pt 3 in https://betterprogramming.pub/5-android-webview-secrets-you-probably-didnt-know-b23f8a8b5a0c
@@ -38,6 +40,12 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
         //handle the data captured from webview}
         Log.d("FrontendRequest", s)
         val args = s.split(" ")
+
+        // Allow plugins to handle the frontend requests
+        for (plugin in (act as MainActivity).plugins) {
+            plugin.handleRequest(args)
+        }
+
         when (args[0]) {
             "onBackPressed" -> {
                 (act as MainActivity)._onBackPressed()
@@ -209,25 +217,6 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
                 act.startActivity(intent)
                 return
             }
-            "kanban" -> { // kanban bid atob(prev) atob(operation) atob(arg1) atob(arg2) atob(...)
-                /*var bid: String = args[1]
-                var prevs: List<String>? = null
-                if(args[2] != "null") // prevs == "null" for the first board event (create bord event)
-                    prevs = Base64.decode(args[2], Base64.NO_WRAP).decodeToString().split(" ")
-                var operation: String = Base64.decode(args[3], Base64.NO_WRAP).decodeToString()
-                var argList: List<String>? = null
-                if(args[4] != "null")
-                    argList = Base64.decode(args[4], Base64.NO_WRAP).decodeToString().split(" ")
-
-                 */
-                //var data = JSONObject(Base64.decode(args[1], Base64.NO_WRAP).decodeToString())
-                val bid: String? = if (args[1] != "null") args[1] else null
-                val prev: List<String>? = if (args[2] != "null") Base64.decode(args[2], Base64.NO_WRAP).decodeToString().split(",").map{ Base64.decode(it, Base64.NO_WRAP).decodeToString()} else null
-                val op: String = args[3]
-                val argsList: List<String>? = if(args[4] != "null") Base64.decode(args[4], Base64.NO_WRAP).decodeToString().split(",").map{ Base64.decode(it, Base64.NO_WRAP).decodeToString()} else null
-
-                kanban(bid, prev , op, argsList)
-            }
             "iam" -> {
                 val new_alias = Base64.decode(args[1], Base64.NO_WRAP).decodeToString()
                 val lst = Bipf.mkList()
@@ -237,6 +226,18 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
                 val body = Bipf.encode(lst)
                 if (body != null) {
                     act.tinyNode.publish_public_content(body)
+                }
+            }
+            // Not needed anymore but kept for reference
+            "writeManifestPaths" -> {
+                //Log.d("HERE", "i am here!!!!")
+                sendManifestPathsToFrontend()
+            }
+            // Not needed anymore but kept for reference
+            "getManifestData" -> {
+                if (args.size > 1) {
+                    val path = args[1]
+                    readManifestFile(path)
                 }
             }
             "settings:set" -> {
@@ -268,6 +269,70 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
         }
         Toast.makeText(act, "Import of new ID failed.", Toast.LENGTH_LONG).show()
         return false
+    }
+
+    /**
+     * The following function was part of the initial approach for retrieving the manifest
+     * paths and sending them to the frontend and ultimately help creating a button for
+     * the mini App menu. It has been replaced by a more efficient method but is kept here
+     * for reference. If not needed, consider removing this section entirely to clean up the
+     * codebase.
+    */
+    fun sendManifestPathsToFrontend() {
+
+        //Log.d("INSIDE", "i am inside the function")
+        // Access the assets directory (only read)
+        val assetManager = act.assets
+        val manifestFilePaths = mutableListOf<String>()
+
+        try {
+            // List all directories in the "miniApps" directory
+            val miniAppFolders = assetManager.list("web/miniApps") ?: arrayOf()
+            for (folder in miniAppFolders) {
+
+                // Construct the path to each manifest.jon file
+                val manifestPath = "web/miniApps/$folder/manifest.json"
+                try {
+                    val inputStream = assetManager.open(manifestPath)
+                    inputStream.close()
+                    manifestFilePaths.add(manifestPath)
+                } catch (e: IOException) {
+                    Log.e("Manifest", "Manifest file not found: $manifestPath")
+                }
+            }
+        } catch (e: IOException) {
+            Log.e("Manifest", "Error accessing assets", e)
+            return
+        }
+
+        // Convert list of paths to a JSON array and pass to JavaScript frontend
+        val jsonArray = JSONArray(manifestFilePaths)
+        Log.d("Path", jsonArray.toString())
+
+        eval("handleManifestPaths('${jsonArray.toString()}')")
+    }
+
+    /**
+     * The following function was also part of the initial approach for passing the content
+     * of the manifest file to the frontend and ultimately help creating a button for
+     * the mini App menu. It has been replaced by a more efficient method but is kept here
+     * for reference. If not needed, consider removing this section entirely to clean up the
+     * codebase.
+     */
+    fun readManifestFile(path: String) {
+        try {
+            val assetManager = act.assets
+            val inputStream = assetManager.open(path)
+            val reader = BufferedReader(InputStreamReader(inputStream))
+            val content = reader.readText()
+            reader.close()
+
+            val quotedContent = JSONObject.quote(content)
+            // Send the content to the frontend
+            eval("handleManifestContent($quotedContent)")
+        } catch (e: IOException) {
+            Log.e("AssetError", "Error reading asset file", e)
+        }
     }
 
     fun public_post_with_voice(tips: ArrayList<String>, text: String?, voice: ByteArray?) {
@@ -304,49 +369,6 @@ class WebAppInterface(val act: MainActivity, val webView: WebView) {
         val body = Bipf.encode(lst)
         if (body != null)
             act.tinyNode.publish_public_content(body)
-    }
-
-    fun kanban(bid: String?, prev: List<String>?, operation: String, args: List<String>?) {
-        val lst = Bipf.mkList()
-        Bipf.list_append(lst, TINYSSB_APP_KANBAN)
-        if (bid != null)
-            Bipf.list_append(lst, Bipf.mkBytes(Base64.decode(bid, Base64.NO_WRAP)))
-        else
-            Bipf.list_append(lst, Bipf.mkNone())
-
-        if(prev != null) {
-            val prevList = Bipf.mkList()
-            for(p in prev) {
-                Bipf.list_append(prevList, Bipf.mkBytes(Base64.decode(p, Base64.NO_WRAP)))
-            }
-            Bipf.list_append(lst, prevList)
-        } else {
-            Bipf.list_append(lst, Bipf.mkString("null"))  // TODO: Change to Bipf.mkNone(), but would be incompatible with the old format
-        }
-
-        Bipf.list_append(lst, Bipf.mkString(operation))
-
-        if(args != null) {
-            for(arg in args) {
-                if (Regex("^([A-Za-z0-9+/]{4})*([A-Za-z0-9+/]{3}=|[A-Za-z0-9+/]{2}==)?\$").matches(arg)) {
-                    Bipf.list_append(lst, Bipf.mkBytes(Base64.decode(arg, Base64.NO_WRAP)))
-                } else { // arg is not a b64 string
-                    Bipf.list_append(lst, Bipf.mkString(arg))
-                }
-            }
-        }
-
-        val body = Bipf.encode(lst)
-
-        if (body != null) {
-            Log.d("kanban", "published bytes: " + Bipf.decode(body))
-            act.tinyNode.publish_public_content(body)
-        }
-        //val body = Bipf.encode(lst)
-        //Log.d("KANBAN BIPF ENCODE", Bipf.bipf_list2JSON(Bipf.decode(body!!)!!).toString())
-        //if (body != null)
-            //act.tinyNode.publish_public_content(body)
-
     }
 
     fun return_voice(voice: ByteArray) {
