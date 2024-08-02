@@ -1,6 +1,7 @@
-package nz.scuttlebutt.tremolavossbol
+package nz.scuttlebutt.tremolavossbol.miniapps
 
 import android.webkit.WebView
+import nz.scuttlebutt.tremolavossbol.MainActivity
 import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.InputStreamReader

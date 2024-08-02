@@ -4,7 +4,7 @@ import android.util.Base64
 import android.util.Log
 import android.webkit.WebView
 import nz.scuttlebutt.tremolavossbol.MainActivity
-import nz.scuttlebutt.tremolavossbol.MiniAppPlugin
+import nz.scuttlebutt.tremolavossbol.miniapps.MiniAppPlugin
 import nz.scuttlebutt.tremolavossbol.utils.Bipf
 
 // Define a constant for the Kanban app within the plugin

@@ -3,7 +3,7 @@ package nz.scuttlebutt.tremolavossbol.miniapps
 import android.util.Log
 import android.webkit.WebView
 import nz.scuttlebutt.tremolavossbol.MainActivity
-import nz.scuttlebutt.tremolavossbol.MiniAppPlugin
+import nz.scuttlebutt.tremolavossbol.miniapps.MiniAppPlugin
 
 /**
  * SketchPlugin is a subclass of MiniAppPlugin that provides functionality specific to the Sketch board mini-app.
