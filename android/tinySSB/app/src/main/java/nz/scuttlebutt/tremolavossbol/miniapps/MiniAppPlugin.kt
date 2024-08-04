@@ -34,27 +34,41 @@ abstract class MiniAppPlugin(val act: MainActivity, val webView: WebView) {
      * Injects all specified resources into the WebView. To be used in the overridden initialize()
      * function for every mini App Plugin
      *
-     * @param css CSS code to be injected.
+     * @param cssPath CSS code to be injected.
      * @param scriptPath Array of JavaScript file paths to be injected.
-     * @param htmlContents Array of HTML content to be injected into the core div.
+     * @param htmlPath Array of HTML content to be injected into the core div.
      * @param displayOrNot List of display configurations to be injected.
      * @param scenarioDisplay Map of scenario displays to be injected.
      * @param scenarioMenu Map of scenario menus to be injected.
      */
-    open fun injectAll(css: String? = null,
+    open fun injectAll(cssPath: String? = null,
                        scriptPath: Array<String>? = null,
-                       htmlContents: Array<String>? = null,
+                       htmlPath: String? = null,
                        displayOrNot: List<String>? = null,
                        scenarioDisplay: Map<String, List<String>>? = null,
                        scenarioMenu: Map<String, List<Pair<String, String>>>? = null,
                        manifestPath: String? = null) {
-        css?.let { injectCSS(it) }
+        cssPath?.let { injectCSS(it) }
         scriptPath?.let { injectScript(*it) }
-        htmlContents?.let { injectContent(*it) }
+        htmlPath?.let { injectContent(it) }
         displayOrNot?.let { injectDisplayOrNot(it) }
         scenarioDisplay?.let { injectScenarioDisplay(it) }
         scenarioMenu?.let { injectScenarioMenu(it) }
         manifestPath?.let { addMiniAppToList(it) }
+    }
+
+    /**
+    * Sends a JavaScript string to the WebView frontend for execution.
+    *
+    * This function posts a Runnable to the WebView, which then evaluates the given
+    * JavaScript string within the context of the web page loaded in the WebView.
+    *
+    * @param js The JavaScript code to be executed in the WebView.
+    */
+    open fun eval(js: String) { // send JS string to webkit frontend for execution
+        webView.post(Runnable {
+            webView.evaluateJavascript(js, null)
+        })
     }
 
     /**
@@ -65,10 +79,11 @@ abstract class MiniAppPlugin(val act: MainActivity, val webView: WebView) {
     private fun injectCSS(css: String) {
         val script = """
             (function() {
-                var style = document.createElement('style');
-                style.type = 'text/css';
-                style.innerHTML = `$css`;
-                document.head.appendChild(style);
+                var link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.type = 'text/css';
+                link.href = '$css';
+                document.head.appendChild(link);
             })();
         """.trimIndent()
         webView.evaluateJavascript(script, null)
@@ -95,24 +110,27 @@ abstract class MiniAppPlugin(val act: MainActivity, val webView: WebView) {
     /**
      * Injects the given HTML content into the div with id 'core'.
      *
-     * @param HtmlContents Variable number of HTML content strings to be injected.
+     * @param HtmlPath Variable number of HTML content strings to be injected.
      */
-    private fun injectContent(vararg HtmlContents: String) {
-        HtmlContents.forEach { HtmlContent ->
-            // Javascript function that will be executed by evaluateJavascript
-            val content = """
-                (function() {
-                    var coreDiv = document.getElementById('core');
-                    if (coreDiv) {
-                        coreDiv.innerHTML += `$HtmlContent`;
-                        console.log('HTML content added to core div');
-                    } else {
-                        console.log('Core div not found');
-                    }
-                })();
-            """
-            webView.evaluateJavascript(content, null)
-        }
+    private fun injectContent(HtmlPath: String) {
+
+        val inputStream = act.assets.open(HtmlPath)
+        val bufferedReader = BufferedReader(InputStreamReader(inputStream))
+        val htmlContent = bufferedReader.use { it.readText() }
+
+        // Javascript function that will be executed by evaluateJavascript
+        val content = """
+            (function() {
+                var coreDiv = document.getElementById('core');
+                if (coreDiv) {
+                    coreDiv.innerHTML += `$htmlContent`;
+                    console.log('HTML content added to core div');
+                } else {
+                    console.log('Core div not found');
+                }
+            })();
+        """
+        webView.evaluateJavascript(content, null)
     }
 
     /**

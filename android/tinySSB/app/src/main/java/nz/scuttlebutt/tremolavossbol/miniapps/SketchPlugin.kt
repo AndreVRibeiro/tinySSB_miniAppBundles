@@ -50,9 +50,7 @@ class SketchPlugin(act: MainActivity, webView: WebView) : MiniAppPlugin(act, web
                     }
                 """.trimIndent()
 
-                webView.post(Runnable {
-                    webView.evaluateJavascript(jsCode, null)
-                })
+                eval(jsCode)
             }
             "load_chat_extension" -> {
                 val jsCode = """
@@ -62,18 +60,14 @@ class SketchPlugin(act: MainActivity, webView: WebView) : MiniAppPlugin(act, web
                     }
                 """.trimIndent()
 
-                webView.post(Runnable {
-                    webView.evaluateJavascript(jsCode, null)
-                })
+                eval(jsCode)
             }
             "sketch:plus_button" -> {
                 val jsCode = """
                     launch_snackbar("This feature is currently deactivated")
                 """.trimIndent()
 
-                webView.post(Runnable {
-                    webView.evaluateJavascript(jsCode, null)
-                })
+                eval(jsCode)
             }
         }
     }
