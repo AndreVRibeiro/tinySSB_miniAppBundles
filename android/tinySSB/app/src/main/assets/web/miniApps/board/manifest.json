@@ -1,7 +1,9 @@
 {
   "name": "Kanban Boards",
   "description": "A visual project management tool to organize tasks.",
-  "isExtension": "False",
+  "extension": "False",
+  "extensionText": "",
+  "extensionInit": "",
   "icon": "miniApps/board/assets/kanban.svg",
   "init": "setKanbanScenario('kanban')",
   "id": "kanban",
