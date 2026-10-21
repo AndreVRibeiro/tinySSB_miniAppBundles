@@ -1,40 +1,81 @@
-# tinySSB - the LoRa descendant of Secure Scuttlebutt
+# 📡 tinySSB — The LoRa Descendant of Secure Scuttlebutt
 
-![tinySSB logo](doc/_img/tinySSB-banner.png)
+![tinySSB Banner](doc/_img/tinySSB-banner.png)
 
-## Unified Bundle Format for Modular Extensions
+**A modular mini-app architecture for Tremola, a decentralized Android messaging application.**
 
-This project aims to refactor the Tremola app, a Secure Scuttlebutt (SSB) client for Android, to support a modular architecture that allows for easy integration and management of mini apps. This README provides an overview of the project, its goals and setup instructions.
+## 📖 About the Project
 
-## Project Overview
+This project was developed as part of my Bachelor's thesis in Computer Science at the University of Basel. It focuses on refactoring **Tremola**, an Android client for Secure Scuttlebutt (SSB) and its tinySSB communication approach, to support a modular architecture for mini apps.
 
-Tremola is a decentralized messaging app that operates without central servers, ensuring robust and private communication. Over the years, various student projects have contributed mini apps to Tremola, resulting in a fragmented codebase. This project addresses this issue by designing a unified bundle format for mini apps, enabling modular development and maintenance.
+Over time, multiple student projects contributed mini apps to Tremola, leading to a fragmented codebase with app-specific logic embedded in the main application. This project introduces a **Unified Bundle Format** that provides a consistent way to structure, integrate, and manage mini apps.
 
-## Goals
+The goal is to make Tremola easier to extend and maintain while reducing dependencies between individual mini apps and the core application.
 
-- **Design a unified bundle format**: Establish a standardized structure for mini apps to ensure consistency and modularity.
-- **Refactor the Tremola app**: Adapt the main codebase to support the new bundle format and remove hard-coded references to mini apps.
-- **Create a mini app menu**: Develop a dedicated menu for launching mini apps, enhancing the user experience.
-- **Implement example mini apps**: Transform the existing Kanban application into a mini app using the new bundle format as a proof of concept.
+## 🎯 Goals
 
-## Key Features
+- 🧩 **Design a Unified Bundle Format** - Define a standardized structure for mini apps.
+- 🔧 **Refactor Tremola** - Adapt the application to support modular mini-app integration.
+- 📱 **Create a Mini-App Menu** - Provide a dedicated interface for discovering and launching mini apps.
+- 📋 **Migrate an Existing App** - Convert the Kanban application into a mini app to demonstrate the new architecture.
 
-- **Modular Architecture**: Each mini app has its own directory with separated logic, GUI, assets, and resources.
-- **Manifest File**: Each mini app includes a manifest.json file with metadata used for integration into the Tremola app.
-- **Kotlin Handlers**: Custom handlers for each mini app are implemented in separate Kotlin files, ensuring no mini app-specific code in the main application.
-- **Plugin System**: A parent class and Plugin Loader manage the discovery and initialization of mini apps.
+## ✨ Key Features
 
-## Setup instructions
+- 🗂️ **Modular Structure** - Each mini app has its own directory for logic, UI, assets, and resources.
+- 📄 **Manifest-Based Configuration** - A `manifest.json` file describes each mini app's metadata.
+- 🛠️ **Separate Kotlin Handlers** - Mini-app-specific behavior is handled independently of the core application.
+- 🔌 **Plugin Loading System** - A shared parent class and plugin loader support mini-app discovery and initialization.
+- 📲 **Android Integration** - Mini apps can be launched through a dedicated menu within Tremola.
 
-1. **Clone the Repository**
+## 🧰 Tech Stack
 
-2. **Open the Project in Android Studio**
-   - Launch Android Studio.
-   - Select "Open an existing Android Studio project" and navigate to the cloned repository folder.
+- **Languages:** Kotlin, JavaScript, HTML/CSS 
+- **Platform:** Android
+- **Development Environment:** Android Studio
+- **Build System:** Gradle
+- **Configuration:** JSON
 
-3. **Setup Emulator**
-   - Configure an Android Emulator in Android Studio. For this project, a Pixel 5 emulator with Android 11 is recommended.
+## 🚀 Getting Started
 
-4. **Build the Project**
-   - Allow Gradle to build the project and resolve dependencies.
+### Prerequisites
 
+- Android Studio
+- Android SDK and a compatible Android emulator or physical Android device
+- Gradle dependencies required by the project
+
+### Installation
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/AndreVRibeiro/tinySSB_miniAppBundles.git
+   cd <repository-directory>
+   ```
+
+2. **Open the project**
+
+   Launch Android Studio and select **Open**, then choose the cloned repository directory.
+
+3. **Set up an emulator**
+
+   Create an Android Virtual Device in Android Studio. A Pixel 5 emulator running Android 11 was used as the recommended configuration for this project.
+
+4. **Build and run**
+
+   Allow Gradle to sync and download the required dependencies. Once the build completes, run the application on the emulator or a compatible Android device.
+
+## 🎓 Academic Context
+
+- **Project:** Bachelor's thesis in Computer Science
+- **Institution:** University of Basel
+- **Focus:** Android development, modular software architecture, and decentralized communication
+
+## 👤 Author
+
+**André Vieira Ribeiro**
+
+Master's student in Machine Intelligence at the University of Basel, with a background in Computer Science.
+
+---
+
+*This repository documents an academic project exploring a more modular and maintainable architecture for Tremola.*
